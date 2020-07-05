@@ -6,7 +6,7 @@ const Product = require("./model/product")
 
 const router = express.Router();
 router.get("/", (req, res, next) => {
-    Order.find().select("quantity product _id").populate("product", "name").exec().then(doc => {
+    Order.find().select("quantity product _id total_price").populate("product", "name").exec().then(doc => {
         if (doc.length > 0) {
             res.status(200).json({
                 count: doc.length,
@@ -33,17 +33,23 @@ router.get("/", (req, res, next) => {
 router.post("/", (req, res, next) => {
 
     Product.count({ _id: req.body.productId }, function (err, count) {
-        if (count > 0) {
-            const order = new Order({
-                _id: new mongoose.Types.ObjectId(),
-                product: req.body.productId,
-                quantity: req.body.quantity
+        console.log(count)
 
+        if (count > 0) {
+            Product.findById(req.body.productId).exec().then(result => {
+                const order = new Order({
+                    _id: new mongoose.Types.ObjectId(),
+                    product: req.body.productId,
+                    quantity: req.body.quantity,
+                    total_price: req.body.quantity * result.price
+
+                })
+
+                order.save().then(result => {
+                    console.log(result)
+                    res.status(200).json({ result })
+                }).catch(err => res.status(500).json({ error: err }))
             })
-            order.save().then(result => {
-                console.log(result)
-                res.status(200).json({ result })
-            }).catch(err => res.status(500).json({ error: err }))
         } else {
             return res.status(404).json({
                 message: "Product not found"
