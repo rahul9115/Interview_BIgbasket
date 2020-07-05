@@ -4,12 +4,15 @@ const productRoutes = require("./app/router/product")
 const orderRoutes = require("./app/router/order")
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+mongoose.connect("mongodb+srv://rahul:" + process.env.password + "@cluster0.rpfjy.mongodb.net/<dbname>?retryWrites=true&w=majority");
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
+
 app.use((req, res, next) => {
     const error = new Error("Not found");
     error.status = 404;
